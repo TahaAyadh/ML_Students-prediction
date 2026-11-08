@@ -80,8 +80,8 @@ function SplitEval(Data::DataFrame, Splits)
     end
 end
 
-function BestFits(Data::DataFrame)
-    MySymbols = filter(x -> (x != :G3 ) , Symbol.(names(Data)))
+function BestFits(Data::DataFrame,exclude::vector{Symbol})
+    MySymbols = filter(x -> !(x in exclude) , Symbol.(names(Data)))
     BestOf = Any[]
     for ele in MySymbols
         T=Threshold_Calc(Data[!, ele])
@@ -90,11 +90,22 @@ function BestFits(Data::DataFrame)
     end     
 
     EV = [result[1] for result in BestOf]
-    return BestOf[argmax(EV)]
+    return (BestOf[argmax(EV)],MySymbols[argmax(EV)])
 end
 
 
-function TreeStructure(Data::DataFrame)
-
-
+function TreeStructure(Data::DataFrame, maxdepht ::Int64,exclude::vector{Symbol})
+    H=E_Calc(Data)
+    BEST = BestFits(Data,exclude)
+    DWork = collect(BEST[2][2])
+    for i in 1:maxdepht-1
+        NextOne = DataFrame[]
+        for ele in DWork
+            BEST=BestFits(ele,exclude)
+            c = BEST[2][2]
+            append!(NextOne,c)
+        end
+        DWork=NextOne
+    end
+    return H
 end
