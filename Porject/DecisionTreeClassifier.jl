@@ -68,17 +68,33 @@ function SplitEval(Data::DataFrame, Splits)
             push!(Ouputs,IG)
             println(IG,"\n")
         end
-        Best = [argmax(Ouputs),maximum(Ouputs)]
-        return Best
+         
+        return (maximum(Ouputs),Splits[argmax(Ouputs)])
     else
         IG=H
         for ele in Splits
             IG=IG_CalcG(IG,ele,S)
         end
         println(IG)
-        return IG
+        return (IG,Splits)
     end
 end
-function BestFits()
-    
+
+function BestFits(Data::DataFrame)
+    MySymbols = filter(x -> (x != :G3 ) , Symbol.(names(Data)))
+    BestOf = Any[]
+    for ele in MySymbols
+        T=Threshold_Calc(Data[!, ele])
+        Sect = SectionMake(Data,ele,T)
+        push!(BestOf, SplitEval(Data,Sect))
+    end     
+
+    EV = [result[1] for result in BestOf]
+    return BestOf[argmax(EV)]
+end
+
+
+function TreeStructure(Data::DataFrame)
+
+
 end
